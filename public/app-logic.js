@@ -950,6 +950,12 @@
       const removeBtn = e.target.closest('[data-remove-child]');
       if (removeBtn) removeChild(parseInt(removeBtn.dataset.removeChild));
       // Nav actions -- use closest() so clicks on child elements (spans, icons) still register
+      // Ancestry card toggle (it's a div, not a button)
+      if (e.target.closest('#ancestry-toggle-card')) {
+        toggleAncestry();
+        return;
+      }
+
       const btn = e.target.closest('button, [role="button"]');
       if (btn) {
         const id = btn.id;
