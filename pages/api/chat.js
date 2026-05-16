@@ -1,4 +1,4 @@
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 import { Redis } from '@upstash/redis';
 
@@ -8,6 +8,8 @@ function getRedis() {
   if (!url || !token) return null;
   return new Redis({ url, token });
 }
+
+const SYSTEM_PROMPT = 'Du bist eine erfahrene Astrologin und Numerologin. Schreibe AUSSCHLIESSLICH in Schweizer Hochdeutsch: KEIN scharfes S (kein ß) -- schreibe immer ss statt ß. Schreibe tief, persoenlich und konkret. Jede Analyse soll sich wie ein persoenliches Gespraech anfuehlen. Sei grosszuegig mit Laenge und Detail.';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -20,7 +22,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid request body' });
   }
 
-  // ── SAVE LEAD TO REDIS ─────────────────────────────────────────
+  // ── SAVE LEAD TO REDIS (vor Stream-Start, fail-safe) ────────────
   if (lead?.email) {
     try {
       const redis = getRedis();
@@ -42,9 +44,10 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── ANTHROPIC API ──────────────────────────────────────────────
+  // ── STREAM FROM ANTHROPIC ──────────────────────────────────────
+  let upstream;
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -52,22 +55,69 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        system: 'Du bist eine erfahrene Astrologin und Numerologin. Schreibe AUSSCHLIESSLICH in Schweizer Hochdeutsch: KEIN scharfes S (kein ß) -- schreibe immer ss statt ß. Schreibe tief, persoenlich und konkret. Jede Analyse soll sich wie ein persoenliches Gespraech anfuehlen. Sei grosszuegig mit Laenge und Detail.',
+        system: SYSTEM_PROMPT,
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 8000,
+        max_tokens: 6000,
+        stream: true,
         messages,
       }),
     });
-
-    if (!response.ok) {
-      const error = await response.json();
-      return res.status(response.status).json(error);
-    }
-
-    const data = await response.json();
-    return res.status(200).json(data);
   } catch (err) {
-    return res.status(500).json({ error: { message: err.message } });
+    return res.status(502).json({ error: { message: 'Upstream connect failed: ' + err.message } });
+  }
+
+  if (!upstream.ok) {
+    let errBody;
+    try { errBody = await upstream.json(); } catch { errBody = { message: upstream.statusText }; }
+    return res.status(upstream.status).json(errBody);
+  }
+
+  // Streaming headers - wichtig: X-Accel-Buffering verhindert Proxy-Buffering
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders?.();
+
+  const reader = upstream.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      // SSE-Events sind durch \n\n getrennt
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop();  // letzter (evtl. unvollständiger) Event bleibt im Buffer
+
+      for (const raw of parts) {
+        if (!raw.trim()) continue;
+        // Format:  event: <type>\ndata: <json>
+        const lines = raw.split('\n');
+        let eventType = '';
+        let dataLine = '';
+        for (const ln of lines) {
+          if (ln.startsWith('event: ')) eventType = ln.slice(7).trim();
+          else if (ln.startsWith('data: ')) dataLine = ln.slice(6);
+        }
+        if (!dataLine) continue;
+        try {
+          const obj = JSON.parse(dataLine);
+          if (eventType === 'content_block_delta' && obj.delta?.type === 'text_delta') {
+            res.write(obj.delta.text);
+          } else if (eventType === 'error') {
+            res.write('\n\n[STREAM-ERROR] ' + (obj.error?.message || 'Unbekannter Stream-Fehler'));
+          }
+        } catch (e) {
+          // Defekter SSE-Event - ignorieren
+        }
+      }
+    }
+  } catch (streamErr) {
+    try { res.write('\n\n[STREAM-ERROR] ' + streamErr.message); } catch {}
+  } finally {
+    res.end();
   }
 }
-
