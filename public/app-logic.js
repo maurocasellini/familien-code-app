@@ -510,31 +510,39 @@
       startLoader();
       const p1 = getPerson('p1'), p2 = getPerson('p2');
       const hasPair = state.constellation === 'pair' || state.constellation === 'family';
-      let name = p1.firstName || state.lead.name || 'Deine Analyse';
-      if (hasPair && p2.firstName) name += ` & ${p2.firstName}`;
+      let name = p1.firstName || 'Deine Analyse';
+      if (hasPair && p2 && p2.firstName) name += ' & ' + p2.firstName;
       const nameEl = document.getElementById('result-name');
       if (nameEl) nameEl.textContent = name;
       try {
+        let promptText;
+        try {
+          promptText = buildPrompt();
+        } catch(promptErr) {
+          throw new Error('Prompt-Fehler: ' + promptErr.message);
+        }
+        if (!promptText) throw new Error('Prompt ist leer');
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            messages: [{ role: 'user', content: buildPrompt() }],
-            lead: {
-              name: state.lead.name,
-              email: state.lead.email,
-              constellation: state.constellation,
-              focus: state.focus,
-            },
+            messages: [{ role: 'user', content: promptText }],
+            lead: { name: state.lead.name, email: '', constellation: state.constellation, focus: state.focus },
           })
         });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error('API ' + res.status + ': ' + (errData.error?.message || errData.message || res.statusText));
+        }
         const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
+        if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
         stopLoader();
-        renderResult(data.content?.[0]?.text || '');
+        const text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+        if (!text) throw new Error('Keine Antwort von Claude erhalten');
+        renderResult(text);
       } catch (err) {
         stopLoader();
-        renderError(err.message);
+        renderError(err.message || 'Unbekannter Fehler');
       }
       showScreen('result');
     }
