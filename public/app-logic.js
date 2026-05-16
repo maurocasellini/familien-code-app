@@ -74,13 +74,17 @@
 
     // -- ANCESTRY HELPERS ------------------------------------------
     function getAncestor(key) {
+      function v(suffix) { return (document.getElementById('ancestor-' + key + '-' + suffix) || {}).value || ''; }
       return {
-        firstName: (document.getElementById('ancestor-' + key + '-firstname') || {}).value || '',
-        lastName: (document.getElementById('ancestor-' + key + '-lastname') || {}).value || '',
-        birthCountry: (document.getElementById('ancestor-' + key + '-country') || {}).value || '',
-        day: (document.getElementById('ancestor-' + key + '-day') || {}).value || '',
-        month: (document.getElementById('ancestor-' + key + '-month') || {}).value || '',
-        year: (document.getElementById('ancestor-' + key + '-year') || {}).value || '',
+        firstName: v('firstname'),
+        lastName: v('lastname'),
+        birthPlace: v('place'),
+        birthCountry: v('country'),
+        day: v('day'),
+        month: v('month'),
+        year: v('year'),
+        hour: v('hour'),
+        minute: v('minute'),
       };
     }
 
@@ -125,8 +129,11 @@
           // Update sub label
           var fn = (document.getElementById('ancestor-' + key + '-firstname') || {}).value || '';
           var ln = (document.getElementById('ancestor-' + key + '-lastname') || {}).value || '';
+          var place = (document.getElementById('ancestor-' + key + '-place') || {}).value || '';
           var sub = document.getElementById('ancestor-sub-' + key);
-          if (sub) sub.textContent = (fn + ' ' + ln).trim() || 'Tippe hier um Angaben zu machen';
+          var subText = (fn + ' ' + ln).trim();
+          if (subText && place) subText += ', ' + place;
+          if (sub) sub.textContent = subText || 'Tippe hier um Angaben zu machen';
         };
       });
     }
@@ -451,8 +458,12 @@
           var a = ancestry[k] || getAncestor(k === 'maternalGrandmother' ? 'mgm' : k === 'maternalGrandfather' ? 'mgf' : k === 'paternalGrandmother' ? 'pgm' : k === 'paternalGrandfather' ? 'pgf' : k);
           if (a && a.firstName) {
             ancestryBlock += '\n- ' + aLabels[i] + ': ' + a.firstName + (a.lastName ? ' ' + a.lastName : '');
+            if (a.birthPlace) ancestryBlock += ', Geburtsort: ' + a.birthPlace;
             if (a.birthCountry) ancestryBlock += ', Herkunft: ' + a.birthCountry;
-            if (a.day && a.month && a.year) ancestryBlock += ', *' + a.day + '.' + a.month + '.' + a.year;
+            if (a.day && a.month && a.year) {
+              ancestryBlock += ', *' + a.day + '.' + a.month + '.' + a.year;
+              if (a.hour) ancestryBlock += ' um ' + a.hour + ':' + (a.minute || '00') + ' Uhr';
+            }
           }
         });
         if (ancestry.themes) ancestryBlock += '\nWiederkehrende Familienthemen: ' + ancestry.themes;

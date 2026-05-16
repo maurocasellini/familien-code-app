@@ -804,33 +804,100 @@ export default function Home() {
 
           <div id="ancestry-fields" style={{ display: 'none' }}>
             <div className="ornament" style={{ margin: '12px 0 8px' }}>— Eltern —</div>
-            {['mother', 'father', 'mgm', 'mgf', 'pgm', 'pgf'].map(key => (
+
+            {[
+              { key: 'mother', label: 'Mutter' },
+              { key: 'father', label: 'Vater' },
+            ].map(({ key, label }) => (
               <div key={key} id={"ancestor-block-" + key} className="ancestor-block">
                 <div className="ancestor-header" id={"ancestor-toggle-" + key}>
                   <div>
-                    <div className="ancestor-title" id={"ancestor-title-" + key}>
-                      {key === 'mother' ? 'Mutter' : key === 'father' ? 'Vater' : key === 'mgm' ? 'Grossmutter mütterlicherseits' : key === 'mgf' ? 'Grossvater mütterlicherseits' : key === 'pgm' ? 'Grossmutter väterlicherseits' : 'Grossvater väterlicherseits'}
-                      <span className="optional-badge">optional</span>
-                    </div>
+                    <div className="ancestor-title">{label} <span className="optional-badge">optional</span></div>
                     <div className="ancestor-sub" id={"ancestor-sub-" + key}>Tippe hier um Angaben zu machen</div>
                   </div>
                   <div className="ancestor-arrow" id={"ancestor-arrow-" + key}>▾</div>
                 </div>
                 <div className="ancestor-fields" id={"ancestor-fields-" + key} style={{ display: 'none' }}>
-                  <div className="field-group">
-                    <label className="field-label">Taufname</label>
-                    <input className="field-input" id={"ancestor-" + key + "-firstname"} placeholder="Vorname" />
+                  <div className="field-row">
+                    <div className="field-group">
+                      <label className="field-label">Taufname</label>
+                      <input className="field-input" id={"ancestor-" + key + "-firstname"} placeholder="Vorname" />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Nachname</label>
+                      <input className="field-input" id={"ancestor-" + key + "-lastname"} placeholder="Geburtsname" />
+                    </div>
+                  </div>
+                  <div className="field-row">
+                    <div className="field-group">
+                      <label className="field-label">Geburtsort</label>
+                      <input className="field-input" id={"ancestor-" + key + "-place"} placeholder="Stadt, Land" />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Herkunftsland</label>
+                      <input className="field-input" id={"ancestor-" + key + "-country"} placeholder="z. B. Portugal, Schweiz" />
+                    </div>
                   </div>
                   <div className="field-group">
-                    <label className="field-label">Nachname / Geburtsname</label>
-                    <input className="field-input" id={"ancestor-" + key + "-lastname"} placeholder="Familienname" />
+                    <label className="field-label">Geburtsdatum (optional)</label>
+                    <div className="date-row">
+                      <div className="field-group"><input className="field-input" id={"ancestor-" + key + "-day"} type="number" placeholder="TT" style={{ textAlign: 'center' }} /><div className="date-hint">Tag</div></div>
+                      <div className="field-group"><input className="field-input" id={"ancestor-" + key + "-month"} type="number" placeholder="MM" style={{ textAlign: 'center' }} /><div className="date-hint">Monat</div></div>
+                      <div className="field-group"><input className="field-input" id={"ancestor-" + key + "-year"} type="number" placeholder="JJJJ" style={{ textAlign: 'center' }} /><div className="date-hint">Jahr</div></div>
+                    </div>
+                  </div>
+                  <div className="field-row">
+                    <div className="field-group">
+                      <label className="field-label">Geburtszeit (optional)</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                        <div><input className="field-input" id={"ancestor-" + key + "-hour"} type="number" placeholder="HH" min="0" max="23" style={{ textAlign: 'center' }} /><div className="date-hint">Stunde</div></div>
+                        <div><input className="field-input" id={"ancestor-" + key + "-minute"} type="number" placeholder="MM" min="0" max="59" style={{ textAlign: 'center' }} /><div className="date-hint">Minute</div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div className="ornament" style={{ margin: '14px 0 8px' }}>— Grosseltern —</div>
+
+            {[
+              { key: 'mgm', label: 'Grossmutter (mütterlicherseits)' },
+              { key: 'mgf', label: 'Grossvater (mütterlicherseits)' },
+              { key: 'pgm', label: 'Grossmutter (väterlicherseits)' },
+              { key: 'pgf', label: 'Grossvater (väterlicherseits)' },
+            ].map(({ key, label }) => (
+              <div key={key} id={"ancestor-block-" + key} className="ancestor-block">
+                <div className="ancestor-header" id={"ancestor-toggle-" + key}>
+                  <div>
+                    <div className="ancestor-title">{label} <span className="optional-badge">optional</span></div>
+                    <div className="ancestor-sub" id={"ancestor-sub-" + key}>Tippe hier um Angaben zu machen</div>
+                  </div>
+                  <div className="ancestor-arrow" id={"ancestor-arrow-" + key}>▾</div>
+                </div>
+                <div className="ancestor-fields" id={"ancestor-fields-" + key} style={{ display: 'none' }}>
+                  <div className="field-row">
+                    <div className="field-group">
+                      <label className="field-label">Taufname</label>
+                      <input className="field-input" id={"ancestor-" + key + "-firstname"} placeholder="Vorname" />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Nachname</label>
+                      <input className="field-input" id={"ancestor-" + key + "-lastname"} placeholder="Geburtsname" />
+                    </div>
+                  </div>
+                  <div className="field-row">
+                    <div className="field-group">
+                      <label className="field-label">Geburtsort</label>
+                      <input className="field-input" id={"ancestor-" + key + "-place"} placeholder="Stadt, Land" />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Herkunftsland</label>
+                      <input className="field-input" id={"ancestor-" + key + "-country"} placeholder="z. B. Portugal, Schweiz" />
+                    </div>
                   </div>
                   <div className="field-group">
-                    <label className="field-label">Herkunftsland</label>
-                    <input className="field-input" id={"ancestor-" + key + "-country"} placeholder="z. B. Portugal, Schweiz" />
-                  </div>
-                  <div className="field-group">
-                    <label className="field-label">Geburtsdatum (falls bekannt)</label>
+                    <label className="field-label">Geburtsdatum (optional)</label>
                     <div className="date-row">
                       <div className="field-group"><input className="field-input" id={"ancestor-" + key + "-day"} type="number" placeholder="TT" style={{ textAlign: 'center' }} /><div className="date-hint">Tag</div></div>
                       <div className="field-group"><input className="field-input" id={"ancestor-" + key + "-month"} type="number" placeholder="MM" style={{ textAlign: 'center' }} /><div className="date-hint">Monat</div></div>
@@ -838,9 +905,9 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-                {key === 'father' && <div className="ornament" style={{ margin: '14px 0 8px' }}>— Grosseltern —</div>}
               </div>
             ))}
+
             <div className="ornament" style={{ margin: '14px 0 8px' }}>— Themen —</div>
             <div className="field-group">
               <label className="field-label">Wiederkehrende Familienthemen <span className="optional-badge">optional</span></label>
@@ -851,7 +918,7 @@ export default function Home() {
 
           <div className="btn-row" style={{ marginTop: 24 }}>
             <button className="btn-primary btn-next-generic" id="btn-ancestry-next">Weiter</button>
-            <button className="btn-ghost btn-next-generic" id="btn-ancestry-skip">Ohne Ahnenlinie weiter</button>
+            <button className="btn-ghost btn-next-generic" id="btn-ancestry-skip" style={{ display: '' }}>Ohne Ahnenlinie weiter</button>
           </div>
         </div>
       </div>

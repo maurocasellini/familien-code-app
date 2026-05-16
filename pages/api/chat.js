@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 import { Redis } from '@upstash/redis';
 
 function getRedis() {
