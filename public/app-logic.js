@@ -443,12 +443,12 @@
       sektionen += '8. Jahresenergien 2025-2030 -- mit [JAHRES-TABELLE:' + [p1.firstName, hasPair && p2 && p2.firstName ? p2.firstName : null].filter(Boolean).join('|') + '] und Zeilen [JAHR:2025|Zahl·Keyword' + (hasPair ? '|Zahl·Keyword' : '') + ']\n';
       sektionen += '9. Pinnacles & Challenges -- mit [PINNACLE:Person|Nr|Zeitraum|Zahl|Beschreibung|Challenge]\n';
       sektionen += '10. Namen-Numerologie -- mit [NAMEN-GRID-START/END]\n';
+      var ancestry = getAncestry();
       var esNum = 11;
       if (ancestry.include) { sektionen += esNum + '. Die Ahnenlinie -- Lebenszahlen der Vorfahren, Muster, Systemisches\n'; esNum++; }
       if (hasNameChange) { sektionen += esNum + '. Namenswechsel & seine Energie\n'; esNum++; }
       sektionen += esNum + '. Die Essenz -- mit [ESSENZ:Ein einziger Satz der alles zusammenfasst]';
 
-      var ancestry = getAncestry();
       var ancestryBlock = '';
       if (ancestry.include) {
         ancestryBlock = '\nAHNENLINIE:';
