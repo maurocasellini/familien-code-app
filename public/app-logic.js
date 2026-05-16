@@ -1,5 +1,7 @@
+(function() {
+  function init() {
 
-    // ── STATE ──────────────────────────────────────────────────────
+    // -- STATE ------------------------------------------------------
     const state = {
       constellation: '',
       focus: '',
@@ -7,7 +9,7 @@
       lead: { name: '', email: '' },  // Lead-Gate
     };
 
-    // ── FLOW ───────────────────────────────────────────────────────
+    // -- FLOW -------------------------------------------------------
     function getFlow() {
       const hasPair = state.constellation === 'pair' || state.constellation === 'family';
       const hasKids = state.constellation === 'family' || state.constellation === 'solo_children';
@@ -63,7 +65,7 @@
       if (i > 0) showScreen(f[i - 1]);
     }
 
-    // ── CARDS ──────────────────────────────────────────────────────
+    // -- CARDS ------------------------------------------------------
     function selectCard(el, type) {
       el.closest('[class*="card-grid"]').querySelectorAll('.select-card').forEach(c => c.classList.remove('selected'));
       el.classList.add('selected');
@@ -78,7 +80,7 @@
       }
     }
 
-    // ── LEAD GATE ──────────────────────────────────────────────────
+    // -- LEAD GATE --------------------------------------------------
     function validateLead() {
       const name = document.getElementById('lead-name')?.value.trim();
       const email = document.getElementById('lead-email')?.value.trim();
@@ -89,28 +91,22 @@
     }
 
     function submitLead() { goNext(); }
-          ).catch(() => {});
-        }
-      } catch {}
 
-      goNext();
-    }
-
-    // ── COMPATIBILITY NUMBER ────────────────────────────────────────
+    // -- COMPATIBILITY NUMBER ----------------------------------------
     function compatNum(lz1, lz2) {
       if (!lz1 || !lz2 || lz1 === 'n/a' || lz2 === 'n/a') return 'n/a';
       const sum = Number(lz1) + Number(lz2);
       return red(sum);
     }
 
-    // ── NAME CHANGE ANALYSIS ────────────────────────────────────────
+    // -- NAME CHANGE ANALYSIS ----------------------------------------
     function nameChangeBlock(prefix, label) {
       const firstName = val(`${prefix}-newname-first`);
       const lastName = val(`${prefix}-newname-last`);
       if (!firstName && !lastName) return '';
       const full = `${firstName} ${lastName}`.trim();
       const n = nameNums(full);
-      return `\n${label} — NEUER NAME: ${full}\n- Neue Ausdruckszahl: ${n.expression}\n- Neue Persönlichkeitszahl: ${n.personality}\n- Neue Seelendrang-Zahl: ${n.soul}`;
+      return `\n${label} -- NEUER NAME: ${full}\n- Neue Ausdruckszahl: ${n.expression}\n- Neue Persönlichkeitszahl: ${n.personality}\n- Neue Seelendrang-Zahl: ${n.soul}`;
     }
     function toggleField(inputId, toggleId) {
       const input = document.getElementById(inputId);
@@ -121,7 +117,7 @@
       if (on) input.value = '';
     }
 
-    // ── FORMS ──────────────────────────────────────────────────────
+    // -- FORMS ------------------------------------------------------
     function personFormHTML(prefix) {
       return `
         <div class="field-row">
@@ -212,7 +208,7 @@
       if (btn) btn.style.display = '';
     }
 
-    // ── HELPERS ────────────────────────────────────────────────────
+    // -- HELPERS ----------------------------------------------------
     function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
     function isOn(id) { const el = document.getElementById(id); return el ? el.classList.contains('on') : false; }
     function getPerson(prefix) {
@@ -232,7 +228,7 @@
       return out;
     }
 
-    // ── NUMEROLOGIE ────────────────────────────────────────────────
+    // -- NUMEROLOGIE ------------------------------------------------
     const LM = { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, I: 9, J: 1, K: 2, L: 3, M: 4, N: 5, O: 6, P: 7, Q: 8, R: 9, S: 1, T: 2, U: 3, V: 4, W: 5, X: 6, Y: 7, Z: 8 };
     const VO = new Set(['A', 'E', 'I', 'O', 'U']);
     function red(n) { if (n === 11 || n === 22 || n === 33) return n; if (n < 10) return n; return red(String(n).split('').reduce((a, d) => a + parseInt(d), 0)); }
@@ -269,7 +265,7 @@
       return `\n${label}: ${full}\n- Geburtsdatum: ${p.birthDate || 'unbekannt'}\n- Geburtszeit: ${p.birthTime || 'unbekannt'}\n- Geburtsort: ${p.birthPlace || 'unbekannt'}\n- Lebenszahl: ${lifeNum(p.birthDate)}\n- Seelendrang: ${n.soul}\n- Persönlichkeitszahl: ${n.personality}\n- Ausdruckszahl: ${n.expression}\n- Persönliches Jahr 2025: ${persYear(p.birthDate)}\n- Sternzeichen: ${zodiac(p.birthDate)}`;
     }
 
-    // ── PROMPT ─────────────────────────────────────────────────────
+    // -- PROMPT -----------------------------------------------------
     function buildPrompt() {
       const hasPair = state.constellation === 'pair' || state.constellation === 'family';
       const hasKids = state.constellation === 'family' || state.constellation === 'solo_children';
@@ -319,69 +315,36 @@
       const nn2 = hasPair && p2 ? calcNameNums(p2.firstName, p2.lastName) : null;
       const nnKids = hasKids ? getChildren().map(c => calcNameNums(c.firstName, c.lastName)) : [];
 
-      return `Du bist eine erfahrene Astrologin und Numerologin. Erstelle eine tiefe, persoenliche Analyse in Schweizer Hochdeutsch, direkt ansprechend mit du. ABSOLUT WICHTIG: Schreibe KEIN scharfes S (kein ß). Verwende immer ss statt ß: Strasse, Strasse, weiss, heisst, muss, dass, aussen, Fuesse usw. Kein einziges ß im gesamten Text.
+      var sektionen = '1. Der zentrale Code -- mit [ZAHL:X] fuer den Haupt-Code\n';
+      if (hasPair) {
+        sektionen += '2. Schlüsseldaten des Paares -- mit [KARTEN-GRID-START/END]\n3. Beziehungsdynamik -- mit [DYNAMIK:]\n4. Astrologische Kernverbindungen -- mit [ASTRO-START/END]\n';
+      } else {
+        sektionen += '2. Persoenlicher Lebensweg\n3. Namen-Energie -- mit [NAMEN-GRID-START/END]\n';
+      }
+      if (hasKids) sektionen += '5. Die Kinder -- mit [PERSON-GRID-START/END] pro Kind\n';
+      if (state.constellation === 'family') sektionen += '6. Das Familiensystem -- Fliesstext\n';
+      sektionen += '7. Herausforderung & Schlüssel -- mit [HS-START/END]\n';
+      sektionen += '8. Jahresenergien 2025-2030 -- mit [JAHRES-TABELLE:' + [p1.firstName, hasPair && p2 && p2.firstName ? p2.firstName : null].filter(Boolean).join('|') + '] und Zeilen [JAHR:2025|Zahl·Keyword' + (hasPair ? '|Zahl·Keyword' : '') + ']\n';
+      sektionen += '9. Pinnacles & Challenges -- mit [PINNACLE:Person|Nr|Zeitraum|Zahl|Beschreibung|Challenge]\n';
+      sektionen += '10. Namen-Numerologie -- mit [NAMEN-GRID-START/END]\n';
+      sektionen += hasNameChange ? '11. Namenswechsel\n12. Die Essenz -- mit [ESSENZ:Satz]' : '11. Die Essenz -- mit [ESSENZ:Satz]';
 
-KONSTELLATION: ${state.constellation}
-FOKUS: ${state.focus}
-${personBlock(p1, 'PERSON 1')}
-${p2 ? personBlock(p2, 'PERSON 2') : ''}
-${compatBlock}
-${coupleBlock}
-${kids}
-${nc1}${nc2}
-
-VORBERECHNETE NAMEN-NUMEROLOGIE (diese Zahlen sind korrekt — verwende sie exakt so):
-${nameNumsText(nn1, 'PERSON 1')}
-${nn2 ? nameNumsText(nn2, 'PERSON 2') : ''}
-${nnKids.map((nn, i) => nameNumsText(nn, `KIND ${i+1}`)).join('\n')}
-
-Gib die Analyse als strukturierten Text zurück. Trenne Sektionen mit ~~~.
-Jede Sektion beginnt mit dem Titel, dann einem Zeilenumbruch, dann dem Inhalt.
-
-Verwende folgende spezielle Markierungen innerhalb der Sektionen:
-
-Für grosse Zahlen / Codes: [ZAHL:11] oder [ZAHL:11/3]
-Für Personen-Cards (2 nebeneinander): [PERSON-GRID-START] ... [PERSON-CARD:Label|Name|Datum · Zeit · Ort|Sternzeichen|Beschreibung|LZ:11|Pinnacle:9|PersJahr:4] ... [PERSON-GRID-END]
-Für 2-spaltige Info-Karten: [KARTEN-GRID-START] ... [KARTE:Eyebrow|Titel|Untertitel|Beschreibung] ... [KARTEN-GRID-END]
-Für Beziehungs-Dynamik: [DYNAMIK:SIE-Label|SIE-Zahl|ER-Label|ER-Zahl|Resonanz-Text]
-Für astrologische Verbindungen als Karten: [ASTRO-START] ... [ASTRO:Symbol|Titel|Text] ... [ASTRO-END]
-Für Herausforderung & Schlüssel 2-spaltig: [HS-START] ... [HERAUSFORDERUNG:Text] ... [SCHLUESSEL:Text] ... [HS-END]
-Für Jahresenergien-Tabelle: Nur so viele Spalten wie tatsächlich Personen vorhanden sind. Verwende: [JAHRES-TABELLE:${[p1.firstName, hasPair && p2?.firstName, ...(hasKids ? getChildren().map(c => c.firstName) : [])].filter(Boolean).join('|')}] gefolgt von Zeilen: [JAHR:2025|Zahl·Keyword${hasPair ? '|Zahl·Keyword' : ''}${hasKids ? getChildren().map(() => '|Zahl·Keyword').join('') : ''}]
-Für Pinnacles: [PINNACLE:Person|Nummer|Zeitraum|Zahl|Beschreibung|Challenge]
-Für Namen-Numerologie Cards: [NAMEN-GRID-START] ... [NAMEN-CARD:Name|Rolle|Seelendrang-Zahl|Seelendrang-Label|Pers-Zahl|Pers-Label|Ausdruck-Zahl|Ausdruck-Label|Beschreibung] ... [NAMEN-GRID-END]
-PFLICHTREGELN für NAMEN-CARD:
-- Name = vollständiger Name in normaler Schreibweise, KEINE Bindestriche zwischen Buchstaben (richtig: "Mauro Casellini", falsch: "M-A-U-R-O")
-- Rolle = kurze Bezeichnung wie "Vollständiger Name · Lebenszahl 11" oder "Vorname" oder "Nachname"
-- Alle drei Zahlenpaare (Seelendrang, Persönlichkeit, Ausdruck) MÜSSEN echte berechnete Zahlen enthalten — niemals "—" oder leer lassen
-- Berechne die Zahlen selbst aus dem Namen nach dem pythagoreischen System (A=1,B=2,...,I=9,J=1,...)
-- Beispiel korrekt: [NAMEN-CARD:Mauro Casellini|Vollständiger Name|1|Pionier|4|Struktur|5|Freiheit|Beschreibung hier]
-Für Essenz (letzter Satz, gross): [ESSENZ:Text]
-Für normalen Fliesstext: einfach Text ohne Markierung.
-
-Erstelle folgende Sektionen:
-1. Der zentrale Code — mit [ZAHL:X] für den Haupt-Code, dann Erklärung
-${hasPair ? `2. Schlüsseldaten des Paares — mit [KARTEN-GRID-START/END] für Kennenlernen & Hochzeit, dann [PERSON-GRID-START/END] für beide. Erwähne den Beziehungscode (Kompatibilitätszahl).
-3. Beziehungsdynamik — mit [DYNAMIK:...] und Erklärungstext
-4. Astrologische Kernverbindungen — mit [ASTRO-START/END]
-` : `2. Dein persönlicher Lebensweg — Fliesstext
-3. Deine Namen-Energie — mit [NAMEN-GRID-START/END]
-`}
-${hasKids ? `5. Die Kinder — mit [PERSON-GRID-START/END] pro Kind, Fliesstext dazu
-` : ''}
-${state.constellation === 'family' ? `6. Das Familiensystem — Fliesstext mit Rollen
-` : ''}
-7. Herausforderung & Schlüssel — mit [HS-START/END]
-8. Jahresenergien 2025–2030 — mit [JAHRES-TABELLE:...] und [JAHR:...] Zeilen
-9. Pinnacles & Challenges — mit [PINNACLE:...] für jede Person
-10. Namen-Numerologie — mit [NAMEN-GRID-START/END]
-${hasNameChange ? `11. Namenswechsel & seine Energie — analysiere den/die Namenswechsel: was verändert sich numerologisch? Welche Energie kommt, welche geht? Verwende [NAMEN-GRID-START/END] für den Vergleich.
-12. Die Essenz — mit [ESSENZ:Ein einziger Satz der alles zusammenfasst]` : `11. Die Essenz — mit [ESSENZ:Ein einziger Satz der alles zusammenfasst]`}
-
-Schreibe tief, präzise, persönlich. Keine generischen Aussagen. Zahlen und astrologische Fakten exakt aus den gegebenen Daten ableiten.
-WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** und *kursiv* enthalten. Die Jahresenergien MÜSSEN als [JAHRES-TABELLE] formatiert sein — KEIN Fliesstext mit "**2026 (Jahr 6):**" statt Tabelle.
+      return 'Du bist eine erfahrene Astrologin. Schweizer Hochdeutsch. Kein scharfes S (kein ß) -- immer ss. Tiefe persoenliche Analyse, direkt mit du.\n\n'
+        + 'KONSTELLATION: ' + state.constellation + '\nFOKUS: ' + state.focus + '\n'
+        + personBlock(p1, 'PERSON 1') + '\n'
+        + (p2 ? personBlock(p2, 'PERSON 2') + '\n' : '')
+        + compatBlock + '\n' + coupleBlock + '\n' + kids + '\n' + nc1 + nc2 + '\n'
+        + '\nNAMEN-NUMEROLOGIE (vorberechnet -- exakt verwenden):\n'
+        + nameNumsText(nn1, 'PERSON 1') + '\n'
+        + (nn2 ? nameNumsText(nn2, 'PERSON 2') + '\n' : '')
+        + nnKids.map(function(nn, i) { return nameNumsText(nn, 'KIND ' + (i+1)); }).join('\n') + '\n'
+        + '\nStruktur: Sektionen mit ~~~ trennen. Titel, dann Zeilenumbruch, dann Inhalt.\n'
+        + 'Tags: [ZAHL:X] [PERSON-GRID-START/END] [PERSON-CARD:Label|Name|Datum|Stern|Desc|LZ:X|Pinnacle:X|PersJahr:X] [KARTEN-GRID-START/END] [KARTE:EB|Titel|Sub|Desc] [DYNAMIK:L1|Z1|L2|Z2|Text] [ASTRO-START/END] [ASTRO:Sym|Titel|Text] [HS-START/END] [HERAUSFORDERUNG:Text] [SCHLUESSEL:Text] [PINNACLE:Person|Nr|Zeit|Z|Desc|Challenge] [NAMEN-GRID-START/END] [NAMEN-CARD:Name|Rolle|SD-Z|SD-L|P-Z|P-L|E-Z|E-L|Desc] [ESSENZ:Text]\n'
+        + '\nSektionen:\n' + sektionen + '\n\n'
+        + 'Tief, praezise, persoenlich. Pers. Jahr beginnt am Geburtstag.';
     }
 
-    // ── LOADING CYCLE ──────────────────────────────────────────────
+    // -- LOADING CYCLE ----------------------------------------------
     const LT = ['Lebenszahlen werden ermittelt…', 'Astrologische Verbindungen werden gewoben…', 'Seelenlandschaft entfaltet sich…'];
     let li = null, lx = 0;
     function startLoader() {
@@ -401,7 +364,7 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
     }
     function stopLoader() { if (li) { clearInterval(li); li = null; } }
 
-    // ── API CALL ───────────────────────────────────────────────────
+    // -- API CALL ---------------------------------------------------
     async function startAnalysis() {
       showScreen('loading');
       startLoader();
@@ -436,10 +399,10 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
       showScreen('result');
     }
 
-    // ── RENDER RESULT ──────────────────────────────────────────────
+    // -- RENDER RESULT ----------------------------------------------
     function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-    // Parses inline markdown AFTER escaping — works on already-escaped text
+    // Parses inline markdown AFTER escaping -- works on already-escaped text
     // so we inject safe HTML tags back in
     function parseMarkdown(escapedText) {
       return escapedText
@@ -581,11 +544,11 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
           out += `<div class="res-hs-grid">
             <div class="res-hs-col res-hs-challenge">
               <div class="res-hs-header">Herausforderung</div>
-              ${heraus.map(h => `<div class="res-hs-item">— ${parseMarkdown(esc(h))}</div>`).join('')}
+              ${heraus.map(h => `<div class="res-hs-item">-- ${parseMarkdown(esc(h))}</div>`).join('')}
             </div>
             <div class="res-hs-col res-hs-key">
               <div class="res-hs-header">Schlüssel</div>
-              ${schluessel.map(s => `<div class="res-hs-item">— ${parseMarkdown(esc(s))}</div>`).join('')}
+              ${schluessel.map(s => `<div class="res-hs-item">-- ${parseMarkdown(esc(s))}</div>`).join('')}
             </div>
           </div>`;
           i++;
@@ -627,8 +590,8 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
                 ${r.slice(1).map(cell => {
                   const trimmed = cell.trim();
                   // Skip dash-only cells
-                  if (!trimmed || trimmed === '—' || trimmed === '-' || trimmed === '–') {
-                    return '<td><span class="res-tab-zahl" style="color:var(--gold-pale)">—</span></td>';
+                  if (!trimmed || trimmed === '--' || trimmed === '-' || trimmed === '–') {
+                    return '<td><span class="res-tab-zahl" style="color:var(--gold-pale)">--</span></td>';
                   }
                   const parts = trimmed.split('·');
                   const num = parts[0] ? parts[0].trim() : '';
@@ -673,7 +636,7 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
               const [nameRaw, rolle, sdZ, sdL, pZ, pL, ausZ, ausL, desc] = m[1].split('|');
               // Strip letter-by-letter hyphens ("M-A-U-R-O" → "MAURO"), keep normal word hyphens
               const name = (nameRaw||'').replace(/(?<=[A-ZÄÖÜ])-(?=[A-ZÄÖÜ])/g, '').replace(/(?<=[a-zäöü])-(?=[a-zäöü])/g, '');
-              const isDash = v => !v || v.trim() === '—' || v.trim() === '-' || v.trim() === '';
+              const isDash = v => !v || v.trim() === '--' || v.trim() === '-' || v.trim() === '';
               const zahlenItems = [
                 { z: sdZ, zl: 'Seelendrang', ll: sdL },
                 { z: pZ, zl: 'Persönlichkeit', ll: pL },
@@ -707,7 +670,7 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
           continue;
         }
 
-        // Normal text — group consecutive lines into paragraphs, apply markdown
+        // Normal text -- group consecutive lines into paragraphs, apply markdown
         if (line && !line.startsWith('[')) {
           // Collect consecutive non-empty, non-tag lines as one paragraph
           let paraLines = [line];
@@ -731,22 +694,22 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
       return out;
     }
 
-    // ── SECTION GLOSSARY ───────────────────────────────────────────
+    // -- SECTION GLOSSARY -------------------------------------------
     const SECTION_INFO = {
-      'Der zentrale Code': 'In der Numerologie ist der "zentrale Code" die verdichtete Kernformel einer Person oder Familie — die Lebenszahl kombiniert mit den wichtigsten Schlüsselzahlen. Er zeigt auf einen Blick, welche Energien das Leben am stärksten prägen.',
+      'Der zentrale Code': 'In der Numerologie ist der "zentrale Code" die verdichtete Kernformel einer Person oder Familie -- die Lebenszahl kombiniert mit den wichtigsten Schlüsselzahlen. Er zeigt auf einen Blick, welche Energien das Leben am stärksten prägen.',
       'Schlüsseldaten des Paares': 'Jedes Datum trägt eine numerologische Schwingung. Das Datum des Kennenlernens, der Hochzeit oder anderer Schlüsselereignisse wird auf eine Kernzahl reduziert (Quersumme) und gibt Auskunft darüber, unter welcher Energie dieses Ereignis stand.',
-      'Beziehungsdynamik': 'Die Beziehungsdynamik beschreibt das energetische Zusammenspiel zweier Menschen — wie ihre Lebenszahlen, Sternzeichen und Namen-Energien miteinander resonieren, sich ergänzen oder reiben. Sie zeigt keine Urteile, sondern Muster.',
+      'Beziehungsdynamik': 'Die Beziehungsdynamik beschreibt das energetische Zusammenspiel zweier Menschen -- wie ihre Lebenszahlen, Sternzeichen und Namen-Energien miteinander resonieren, sich ergänzen oder reiben. Sie zeigt keine Urteile, sondern Muster.',
       'Astrologische Kernverbindungen': 'Die Astrologie betrachtet, wie die Planetenpositionen zum Geburtszeitpunkt (Sonne, Mond, Aszendent) zweier Menschen miteinander interagieren. Verbindungen zwischen denselben Zeichen oder Planeten zeigen tiefe Resonanz.',
-      'Dein persönlicher Lebensweg': 'Die Lebenszahl (errechnet aus dem vollständigen Geburtsdatum) ist die wichtigste Zahl in der Numerologie. Sie beschreibt den übergeordneten Weg, die Lebensaufgabe und die Qualitäten, die eine Person entwickeln soll — nicht das, was man ist, sondern wohin man wächst.',
+      'Dein persönlicher Lebensweg': 'Die Lebenszahl (errechnet aus dem vollständigen Geburtsdatum) ist die wichtigste Zahl in der Numerologie. Sie beschreibt den übergeordneten Weg, die Lebensaufgabe und die Qualitäten, die eine Person entwickeln soll -- nicht das, was man ist, sondern wohin man wächst.',
       'Deine Namen-Energie': 'Der Name trägt eigene numerologische Energie. Seelendrang (Vokale) zeigt das innere Verlangen; Persönlichkeit (Konsonanten) zeigt, wie man nach aussen wirkt; Ausdruckszahl (alle Buchstaben) zeigt das Gesamtpotenzial. Basis ist die Taufname-Zuweisung nach dem pythagoreischen System.',
       'Die Kinder': 'Jedes Kind bringt seine eigene numerologische und astrologische Signatur mit. Die Analyse zeigt, welche Energien das Kind trägt, wie es sich im Familiensystem positioniert und welche Verbindungen zu den Eltern bestehen.',
-      'Das Familiensystem': 'Das Familiensystem betrachtet die Familie als energetisches Ganzes — welche Zahlen und Qualitäten dominieren, welche fehlen, wie die einzelnen Mitglieder sich gegenseitig spiegeln und ergänzen. Muster wiederholen sich oft über Generationen.',
-      'Herausforderung & Schlüssel': 'Jede Lebenszahl bringt spezifische Herausforderungen mit — wiederkehrende Themen, die das Leben immer wieder aufwirft. Der Schlüssel ist der bewusste Umgang damit: nicht Widerstand, sondern Integration. Herausforderungen sind keine Schwächen, sondern Wachstumsfelder.',
-      'Jahresenergien': 'Das Persönliche Jahr wird errechnet aus Geburtstag + Geburtsmonat + aktuellem Kalenderjahr. Es beschreibt, unter welchem energetischen Thema ein Jahr steht — von 1 (Neubeginn) bis 9 (Abschluss). Die neunjährigen Zyklen wiederholen sich lebenslang.',
-      'Deine Jahresenergien 2025–2029': 'Das Persönliche Jahr wird errechnet aus Geburtstag + Geburtsmonat + aktuellem Kalenderjahr. Es beschreibt, unter welchem energetischen Thema ein Jahr steht — von 1 (Neubeginn) bis 9 (Abschluss). Die neunjährigen Zyklen wiederholen sich lebenslang.',
-      'Pinnacles & Challenges': 'Pinnacles sind längere Lebenszyklen (ca. 7–27 Jahre), die bestimmte Qualitäten in den Vordergrund bringen. Sie werden aus Geburtstag, -monat und -jahr errechnet. Challenges sind die spezifischen Lernthemen innerhalb jedes Pinnacles — die Reibungspunkte, die bewusste Entwicklung verlangen.',
-      'Namen-Numerologie': 'Eine detaillierte Aufschlüsselung der Namen-Energie aller Familienmitglieder. Seelendrang, Persönlichkeit und Ausdruck zusammen zeigen, wie inneres Verlangen, äussere Wirkung und Gesamtpotenzial zueinander stehen — und wie die Mitglieder sich numerologisch spiegeln.',
-      'Die Essenz': 'Ein einziger Satz, der das Wesen dieser Analyse zusammenfasst — die verdichtete Quintessenz aller Zahlen, Zeichen und Verbindungen.',
+      'Das Familiensystem': 'Das Familiensystem betrachtet die Familie als energetisches Ganzes -- welche Zahlen und Qualitäten dominieren, welche fehlen, wie die einzelnen Mitglieder sich gegenseitig spiegeln und ergänzen. Muster wiederholen sich oft über Generationen.',
+      'Herausforderung & Schlüssel': 'Jede Lebenszahl bringt spezifische Herausforderungen mit -- wiederkehrende Themen, die das Leben immer wieder aufwirft. Der Schlüssel ist der bewusste Umgang damit: nicht Widerstand, sondern Integration. Herausforderungen sind keine Schwächen, sondern Wachstumsfelder.',
+      'Jahresenergien': 'Das Persönliche Jahr wird errechnet aus Geburtstag + Geburtsmonat + aktuellem Kalenderjahr. Es beschreibt, unter welchem energetischen Thema ein Jahr steht -- von 1 (Neubeginn) bis 9 (Abschluss). Die neunjährigen Zyklen wiederholen sich lebenslang.',
+      'Deine Jahresenergien 2025–2029': 'Das Persönliche Jahr wird errechnet aus Geburtstag + Geburtsmonat + aktuellem Kalenderjahr. Es beschreibt, unter welchem energetischen Thema ein Jahr steht -- von 1 (Neubeginn) bis 9 (Abschluss). Die neunjährigen Zyklen wiederholen sich lebenslang.',
+      'Pinnacles & Challenges': 'Pinnacles sind längere Lebenszyklen (ca. 7–27 Jahre), die bestimmte Qualitäten in den Vordergrund bringen. Sie werden aus Geburtstag, -monat und -jahr errechnet. Challenges sind die spezifischen Lernthemen innerhalb jedes Pinnacles -- die Reibungspunkte, die bewusste Entwicklung verlangen.',
+      'Namen-Numerologie': 'Eine detaillierte Aufschlüsselung der Namen-Energie aller Familienmitglieder. Seelendrang, Persönlichkeit und Ausdruck zusammen zeigen, wie inneres Verlangen, äussere Wirkung und Gesamtpotenzial zueinander stehen -- und wie die Mitglieder sich numerologisch spiegeln.',
+      'Die Essenz': 'Ein einziger Satz, der das Wesen dieser Analyse zusammenfasst -- die verdichtete Quintessenz aller Zahlen, Zeichen und Verbindungen.',
     };
 
     function getSectionInfo(title) {
@@ -787,7 +750,7 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
       if (body) body.innerHTML = `<div class="error-box">⚠ ${esc(msg)}<br><small>Bitte versuche es erneut.</small></div>`;
     }
 
-    // ── RESET ──────────────────────────────────────────────────────
+    // -- RESET ------------------------------------------------------
     function resetAll() {
       state.constellation = ''; state.focus = ''; state.childCount = 1;
       state.lead = { name: '', email: '' };
@@ -813,7 +776,7 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
       showScreen('splash');
     }
 
-    // ── INIT FORMS ─────────────────────────────────────────────────
+    // -- INIT FORMS -------------------------------------------------
     const p1form = document.getElementById('person1-form');
     if (p1form) p1form.innerHTML = personFormHTML('p1');
     const p2form = document.getElementById('person2-form');
@@ -824,7 +787,7 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
 
     // Lead gate input listeners
     document.addEventListener('input', (e) => {
-      if (e.target.id === 'lead-name' || e.target.id === 'lead-email') 
+      if (e.target.id === 'lead-name' || e.target.id === 'lead-email') validateLead();
     });
     document.addEventListener('keydown', (e) => {
       if ((e.target.id === 'lead-name' || e.target.id === 'lead-email') && e.key === 'Enter') {
@@ -833,7 +796,7 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
       }
     });
 
-    // ── EVENT DELEGATION ───────────────────────────────────────────
+    // -- EVENT DELEGATION -------------------------------------------
     document.addEventListener('click', (e) => {
       // Select cards
       const card = e.target.closest('.select-card');
@@ -854,7 +817,7 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
       // Remove child buttons
       const removeBtn = e.target.closest('[data-remove-child]');
       if (removeBtn) removeChild(parseInt(removeBtn.dataset.removeChild));
-      // Nav actions — use closest() so clicks on child elements (spans, icons) still register
+      // Nav actions -- use closest() so clicks on child elements (spans, icons) still register
       const btn = e.target.closest('button, [role="button"]');
       if (btn) {
         const id = btn.id;
@@ -871,3 +834,11 @@ WICHTIG: Verwende die strukturierten Tags konsequent. Fliesstext darf **fett** u
       }
     });
 
+
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
