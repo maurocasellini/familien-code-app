@@ -1,5 +1,4 @@
 import Head from 'next/head'
-import Script from 'next/script'
 import { useEffect } from 'react'
 
 export default function Home() {
@@ -981,7 +980,7 @@ export default function Home() {
           <button className="btn-ghost" id="btn-reset-result">Neue Analyse starten</button>
         </div>
       </div>
-      <Script src="/app-logic.js" strategy="afterInteractive" />
+      <script src="/app-logic.js" defer={true} />
     </>
   )
 }
