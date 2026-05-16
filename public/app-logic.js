@@ -393,10 +393,9 @@
         const lz1 = lifeNum(p1.birthDate);
         const lz2 = lifeNum(p2.birthDate);
         const compat = compatNum(lz1, lz2);
-        compatBlock = `\nKOMPATIBILITÄTSZAHL (Beziehungscode): ${compat} (${lz1} + ${lz2} → ${compat})`;
+        compatBlock = `\nKOMPATIBILITÄTSZAHL: ${compat} (${lz1} + ${lz2} → ${compat})`;
       }
 
-      // Namenswechsel
       const nc1 = nameChangeBlock('p1', 'PERSON 1');
       const nc2 = hasPair ? nameChangeBlock('p2', 'PERSON 2') : '';
       const hasNameChange = nc1 || nc2;
@@ -410,12 +409,12 @@
           if (wed) coupleBlock += `\n- Hochzeit: ${wed} → Code: ${lifeNum(wed.replace(/\./g, ''))}`;
         }
       }
-      const kids = hasKids ? getChildren().map((c, i) => personBlock(c, `KIND ${i + 1}`)).join('\n') : '';
 
-      // Pre-compute name numerology (vollständig, Vorname, Nachname einzeln)
+      const kids = hasKids ? getChildren().map((c, i) => personBlock(c, `KIND ${i+1}`)).join('\n') : '';
+
       function calcNameNums(firstName, lastName) {
         if (!firstName) return null;
-        const full = `${firstName} ${lastName}`.trim();
+        const full = `${firstName} ${lastName || ''}`.trim();
         const nFull = nameNums(full);
         const nVor = nameNums(firstName);
         const nNach = lastName ? nameNums(lastName) : null;
@@ -423,65 +422,140 @@
       }
       function nameNumsText(nn, label) {
         if (!nn) return '';
-        return `NAMEN-NUMEROLOGIE ${label}:
-- Vollständiger Name (${nn.full}): Seelendrang=${nn.nFull.soul}, Persönlichkeit=${nn.nFull.personality}, Ausdruck=${nn.nFull.expression}
-- Vorname (${nn.firstName}): Seelendrang=${nn.nVor.soul}, Persönlichkeit=${nn.nVor.personality}, Ausdruck=${nn.nVor.expression}${nn.nNach ? `\n- Nachname (${nn.lastName}): Seelendrang=${nn.nNach.soul}, Persönlichkeit=${nn.nNach.personality}, Ausdruck=${nn.nNach.expression}` : ''}`;
+        let t = `NAMEN-NUMEROLOGIE ${label}:\n`;
+        t += `- Vollständiger Name (${nn.full}): Seelendrang=${nn.nFull.soul}, Persönlichkeit=${nn.nFull.personality}, Ausdruck=${nn.nFull.expression}\n`;
+        t += `- Vorname (${nn.firstName}): Seelendrang=${nn.nVor.soul}, Persönlichkeit=${nn.nVor.personality}, Ausdruck=${nn.nVor.expression}`;
+        if (nn.nNach) t += `\n- Nachname (${nn.lastName}): Seelendrang=${nn.nNach.soul}, Persönlichkeit=${nn.nNach.personality}, Ausdruck=${nn.nNach.expression}`;
+        return t;
       }
+
       const nn1 = calcNameNums(p1.firstName, p1.lastName);
       const nn2 = hasPair && p2 ? calcNameNums(p2.firstName, p2.lastName) : null;
       const nnKids = hasKids ? getChildren().map(c => calcNameNums(c.firstName, c.lastName)) : [];
+      const nnKidsText = nnKids.map((nn, i) => nameNumsText(nn, 'KIND ' + (i+1))).join('\n');
 
-      var sektionen = '1. Der zentrale Code -- mit [ZAHL:X] fuer den Haupt-Code\n';
-      if (hasPair) {
-        sektionen += '2. Schlüsseldaten des Paares -- mit [KARTEN-GRID-START/END]\n3. Beziehungsdynamik -- mit [DYNAMIK:]\n4. Astrologische Kernverbindungen -- mit [ASTRO-START/END]\n';
-      } else {
-        sektionen += '2. Persoenlicher Lebensweg\n3. Namen-Energie -- mit [NAMEN-GRID-START/END]\n';
-      }
-      if (hasKids) sektionen += '5. Die Kinder -- mit [PERSON-GRID-START/END] pro Kind\n';
-      if (state.constellation === 'family') sektionen += '6. Das Familiensystem -- Fliesstext\n';
-      sektionen += '7. Herausforderung & Schlüssel -- mit [HS-START/END]\n';
-      sektionen += '8. Jahresenergien 2025-2030 -- mit [JAHRES-TABELLE:' + [p1.firstName, hasPair && p2 && p2.firstName ? p2.firstName : null].filter(Boolean).join('|') + '] und Zeilen [JAHR:2025|Zahl·Keyword' + (hasPair ? '|Zahl·Keyword' : '') + ']\n';
-      sektionen += '9. Pinnacles & Challenges -- mit [PINNACLE:Person|Nr|Zeitraum|Zahl|Beschreibung|Challenge]\n';
-      sektionen += '10. Namen-Numerologie -- mit [NAMEN-GRID-START/END]\n';
-      var ancestry = getAncestry();
-      var esNum = 11;
-      if (ancestry.include) { sektionen += esNum + '. Die Ahnenlinie -- Lebenszahlen der Vorfahren, Muster, Systemisches\n'; esNum++; }
-      if (hasNameChange) { sektionen += esNum + '. Namenswechsel & seine Energie\n'; esNum++; }
-      sektionen += esNum + '. Die Essenz -- mit [ESSENZ:Ein einziger Satz der alles zusammenfasst]';
-
-      var ancestryBlock = '';
+      // Ancestry block
+      const ancestry = getAncestry();
+      let ancestryBlock = '';
       if (ancestry.include) {
         ancestryBlock = '\nAHNENLINIE:';
-        var aKeys = ['mother', 'father', 'maternalGrandmother', 'maternalGrandfather', 'paternalGrandmother', 'paternalGrandfather'];
-        var aLabels = ['Mutter', 'Vater', 'Grossmutter mütterlicherseits', 'Grossvater mütterlicherseits', 'Grossmutter väterlicherseits', 'Grossvater väterlicherseits'];
-        aKeys.forEach(function(k, i) {
-          var a = ancestry[k] || getAncestor(k === 'maternalGrandmother' ? 'mgm' : k === 'maternalGrandfather' ? 'mgf' : k === 'paternalGrandmother' ? 'pgm' : k === 'paternalGrandfather' ? 'pgf' : k);
+        const aMap = [
+          ['mother', 'Mutter'], ['father', 'Vater'],
+          ['maternalGrandmother', 'Grossmutter mütterlicherseits'],
+          ['maternalGrandfather', 'Grossvater mütterlicherseits'],
+          ['paternalGrandmother', 'Grossmutter väterlicherseits'],
+          ['paternalGrandfather', 'Grossvater väterlicherseits'],
+        ];
+        const keyMap = { maternalGrandmother: 'mgm', maternalGrandfather: 'mgf', paternalGrandmother: 'pgm', paternalGrandfather: 'pgf' };
+        aMap.forEach(([k, lbl]) => {
+          const a = ancestry[k] || getAncestor(keyMap[k] || k);
           if (a && a.firstName) {
-            ancestryBlock += '\n- ' + aLabels[i] + ': ' + a.firstName + (a.lastName ? ' ' + a.lastName : '');
-            if (a.birthPlace) ancestryBlock += ', Geburtsort: ' + a.birthPlace;
-            if (a.birthCountry) ancestryBlock += ', Herkunft: ' + a.birthCountry;
+            ancestryBlock += `\n- ${lbl}: ${a.firstName}${a.lastName ? ' ' + a.lastName : ''}`;
+            if (a.birthPlace) ancestryBlock += `, Geburtsort: ${a.birthPlace}`;
+            if (a.birthCountry) ancestryBlock += `, Herkunft: ${a.birthCountry}`;
             if (a.day && a.month && a.year) {
-              ancestryBlock += ', *' + a.day + '.' + a.month + '.' + a.year;
-              if (a.hour) ancestryBlock += ' um ' + a.hour + ':' + (a.minute || '00') + ' Uhr';
+              ancestryBlock += `, *${a.day}.${a.month}.${a.year}`;
+              if (a.hour) ancestryBlock += ` um ${a.hour}:${a.minute || '00'} Uhr`;
             }
           }
         });
-        if (ancestry.themes) ancestryBlock += '\nWiederkehrende Familienthemen: ' + ancestry.themes;
+        if (ancestry.themes) ancestryBlock += `\nWiederkehrende Familienthemen: ${ancestry.themes}`;
       }
 
-      return 'Du bist eine erfahrene Astrologin. Schweizer Hochdeutsch. Kein scharfes S (kein ß) -- immer ss. Tiefe persoenliche Analyse, direkt mit du.\n\n'
-        + 'KONSTELLATION: ' + state.constellation + '\nFOKUS: ' + state.focus + '\n'
-        + personBlock(p1, 'PERSON 1') + '\n'
-        + (p2 ? personBlock(p2, 'PERSON 2') + '\n' : '')
-        + compatBlock + '\n' + coupleBlock + '\n' + kids + '\n' + nc1 + nc2 + '\n'
-        + '\nNAMEN-NUMEROLOGIE (vorberechnet -- exakt verwenden):\n'
-        + nameNumsText(nn1, 'PERSON 1') + '\n'
-        + (nn2 ? nameNumsText(nn2, 'PERSON 2') + '\n' : '')
-        + nnKids.map(function(nn, i) { return nameNumsText(nn, 'KIND ' + (i+1)); }).join('\n') + '\n'
-        + '\nStruktur: Sektionen mit ~~~ trennen. Titel, dann Zeilenumbruch, dann Inhalt.\n'
-        + 'Tags: [ZAHL:X] [PERSON-GRID-START/END] [PERSON-CARD:Label|Name|Datum|Stern|Desc|LZ:X|Pinnacle:X|PersJahr:X] [KARTEN-GRID-START/END] [KARTE:EB|Titel|Sub|Desc] [DYNAMIK:L1|Z1|L2|Z2|Text] [ASTRO-START/END] [ASTRO:Sym|Titel|Text] [HS-START/END] [HERAUSFORDERUNG:Text] [SCHLUESSEL:Text] [PINNACLE:Person|Nr|Zeit|Z|Desc|Challenge] [NAMEN-GRID-START/END] [NAMEN-CARD:Name|Rolle|SD-Z|SD-L|P-Z|P-L|E-Z|E-L|Desc] [ESSENZ:Text]\n'
-        + '\nSektionen:\n' + sektionen + '\n\n'
-        + 'Tief, praezise, persoenlich. Pers. Jahr beginnt am Geburtstag.';
+      // Table header for years
+      const tableNames = [p1.firstName, hasPair && p2 && p2.firstName ? p2.firstName : null].filter(Boolean);
+      const tableHeader = tableNames.join('|');
+      const yearCols = tableNames.map(() => 'Zahl·Thema').join('|');
+
+      // Build sektionen list
+      let sNr = 1;
+      let sektionen = '';
+
+      // Sektion 0: Einleitung (IMMER - das Template)
+      sektionen += `${sNr++}. Einleitung & Numerologie-Leitfaden -- PFLICHT: Diese Sektion erklaert das Werkzeug. Schreibe einen persoenlichen Einleitungstext fuer ${p1.firstName}. Dann erklaere folgende Konzepte klar und einfach:\n`;
+      sektionen += `   - Was ist Numerologie? (kurze, ehrliche Einordnung)\n`;
+      sektionen += `   - Lebenszahl: wie berechnet, was bedeutet sie (Lebensthema, roter Faden)\n`;
+      sektionen += `   - Seelendrang: aus Vokalen des Taufnamens -- das innere Herzensbegehren\n`;
+      sektionen += `   - Persoenlichkeitszahl: aus Konsonanten -- wie du auf andere wirkst\n`;
+      sektionen += `   - Ausdruckszahl: alle Buchstaben -- dein Gesamtpotenzial\n`;
+      sektionen += `   - Persoenliches Jahr: beginnt AM GEBURTSTAG (nicht 1. Jan!) -- Erklaere mit konkretem Beispiel fuer ${p1.firstName}: "Dein PJ ${persYear(p1.birthDate)} begann am ${p1.birthDate ? p1.birthDate.split('.')[0] + '.' + p1.birthDate.split('.')[1] : '??.??'}.${new Date().getFullYear()} und dauert bis kurz vor deinem naechsten Geburtstag"\n`;
+      sektionen += `   - Pinnacles: 4 Lebensphasen -- erklaere wie sie berechnet werden und was sie bedeuten\n`;
+      sektionen += `   - Meisterzahlen 11, 22, 33: werden nicht reduziert, erklaere warum und was das bedeutet\n`;
+      sektionen += `   Schreibe warmherzig und einladend, nicht akademisch.\n`;
+
+      // Hauptsektion
+      sektionen += `${sNr++}. Der zentrale Code -- zeige [ZAHL:X] fuer die Hauptlebenszahl. Erklaere tiefgruendig: Was bedeutet diese Zahl fuer GENAU DIESE Person? Welche Staerken bringt sie? Welche Herausforderungen? Was ist die spirituelle Aufgabe? Mindestens 4 Absaetze. Bei Meisterzahlen: erklaere den Doppelaspekt (11 = 11 UND 2, etc.)\n`;
+
+      if (hasPair) {
+        sektionen += `${sNr++}. Schlüsseldaten des Paares -- [KARTEN-GRID-START/END] fuer Kennenlernen/Hochzeit-Codes. Dann [PERSON-GRID-START/END] fuer beide Personen mit allen Zahlen.\n`;
+        sektionen += `${sNr++}. Beziehungsdynamik -- [DYNAMIK:Label1|Zahl1|Label2|Zahl2|Text] dann tiefer Fliesstext: Wie erganzen sie sich? Wo entstehen Reibungen? Was ist das gemeinsame Thema?\n`;
+        sektionen += `${sNr++}. Astrologische Kernverbindungen -- [ASTRO-START/END] mit mindestens 3 [ASTRO:Symbol|Titel|Text] Elementen. Erklaere die kosmischen Verbindungen zwischen den Sternzeichen.\n`;
+      } else {
+        sektionen += `${sNr++}. Persoenlicher Lebensweg -- Erklaere den Lebensweg in Phasen: fruehe Jahre (Kindheit/Jugend), mittlere Phase (30er-40er), spaetere Reife. Was sind die grossen Lernfelder und Wendepunkte?\n`;
+        sektionen += `${sNr++}. Namen-Energie -- [NAMEN-GRID-START/END] mit Vorname, Nachname und vollem Namen separat. Erklaere den Unterschied zwischen Seelendrang (inneres Begehren), Persoenlichkeit (aeussere Wirkung) und Ausdruck (Gesamtpotenzial) fuer diese konkrete Person.\n`;
+      }
+
+      if (hasKids) {
+        sektionen += `${sNr++}. Die Kinder -- [PERSON-GRID-START/END] pro Kind. Erklaere die Energie jedes Kindes und wie es sich in das Familiensystem einfuegt.\n`;
+      }
+      if (state.constellation === 'family') {
+        sektionen += `${sNr++}. Das Familiensystem -- Erklaere die numerologische Dynamik der ganzen Familie: wer traegt welche Energie, wo gibt es Resonanz, wo Spannung?\n`;
+      }
+
+      sektionen += `${sNr++}. Herausforderung & Schlüssel -- [HS-START/END] mit [HERAUSFORDERUNG:Text] und [SCHLUESSEL:Text]. Die Herausforderung: Was haelt diese Person zurueck? Der Schluessel: Was ist der Weg durch diese Herausforderung?\n`;
+
+      sektionen += `${sNr++}. Jahresenergien 2025-2030 -- BEGINNE mit einer kurzen Erklaerung: "Das Persoenliche Jahr wechselt bei ${p1.firstName} jeweils am Geburtstag (${p1.birthDate ? p1.birthDate.split('.')[0] + '.' + p1.birthDate.split('.')[1] : '??'}.), nicht am 1. Januar. Das bedeutet: ${new Date().getFullYear() === parseInt((p1.birthDate || '').split('.')[2] || '0') ? '' : 'Das PJ ' + persYear(p1.birthDate) + ' laeuft noch bis zu deinem naechsten Geburtstag.'}". Dann die Tabelle: [JAHRES-TABELLE:${tableHeader}] gefolgt von Zeilen [JAHR:2025|${yearCols}] bis [JAHR:2030|${yearCols}]. Nach jeder Zahl das Kernthema in 2-3 Woertern.\n`;
+
+      sektionen += `${sNr++}. Pinnacles & Challenges -- BEGINNE mit Erklaerung: Vier Lebensphasen, jede mit einer Zahl und einer Challenge. Die Berechnung basiert auf Geburtstag. Dann fuer jede Person: [PINNACLE:Person|Nr|Zeitraum (z.B. 1987-2014)|Zahl|Was diese Phase bringt und bedeutet|Challenge: Was gelernt werden will]. Mindestens 3-4 Pinnacles pro Person.\n`;
+
+      sektionen += `${sNr++}. Namen-Numerologie -- [NAMEN-GRID-START/END] Vollstaendige Analyse. Fuer jede Person: vollstaendiger Name, Vorname, Nachname separat je als [NAMEN-CARD]. Erklaere danach im Fliesstext was es bedeutet, wenn jemand den Namen abkuerzt oder aendert.\n`;
+
+      if (ancestry.include) {
+        sektionen += `${sNr++}. Die Ahnenlinie -- Berechne die Lebenszahlen der Vorfahren und erklaere systemische Muster: Welche Zahlen wiederholen sich? Welche Themen ziehen sich durch die Generationen? Wie beeinflusst das ${p1.firstName}?\n`;
+      }
+      if (hasNameChange) {
+        sektionen += `${sNr++}. Namenswechsel & Energie -- Erklaere was sich numerologisch veraendert hat: welche Energie kommt, welche geht, was das fuer den Lebensweg bedeutet.\n`;
+      }
+
+      sektionen += `${sNr}. Die Essenz -- [ESSENZ:Ein einziger poetischer Satz der das Wesen dieser ganzen Analyse in Worte fasst]`;
+
+      return `Du bist eine erfahrene Astrologin und Numerologin mit 20 Jahren Erfahrung. Du schreibst ausschliesslich in Schweizer Hochdeutsch (kein scharfes S, immer ss statt ß). Du sprichst die Person direkt mit "du" an. Deine Analysen sind tief, persoenlich und konkret -- keine generischen Phrasen.
+
+EINGABEDATEN:
+KONSTELLATION: ${state.constellation}
+FOKUS: ${state.focus}
+${personBlock(p1, 'PERSON 1')}
+${p2 ? personBlock(p2, 'PERSON 2') : ''}${compatBlock}
+${coupleBlock}
+${kids}
+${nc1}${nc2}
+
+VORBERECHNETE ZAHLEN (diese Zahlen sind korrekt -- verwende sie exakt):
+${nameNumsText(nn1, 'PERSON 1')}
+${nn2 ? nameNumsText(nn2, 'PERSON 2') : ''}
+${nnKidsText}
+${ancestryBlock}
+
+FORMAT-REGELN:
+- Trenne Sektionen mit ~~~
+- Jede Sektion: Titel (eine Zeile), dann Leerzeile, dann Inhalt
+- Mindestens 3-4 Absaetze pro Sektion
+- Verwende diese visuellen Tags wo angegeben:
+  [ZAHL:X] = grosse Zahl zentriert
+  [PERSON-GRID-START] ... [PERSON-CARD:Label|Name|Datum·Zeit·Ort|Sternzeichen|Beschreibung|LZ:X|Pinnacle:X|PersJahr:X] ... [PERSON-GRID-END]
+  [KARTEN-GRID-START] ... [KARTE:Eyebrow|Titel|Untertitel|Text] ... [KARTEN-GRID-END]
+  [DYNAMIK:Label1|Zahl1|Label2|Zahl2|Erklaerungstext]
+  [ASTRO-START] ... [ASTRO:Symbol|Titel|Text] ... [ASTRO-END]
+  [HS-START] [HERAUSFORDERUNG:Text] [SCHLUESSEL:Text] [HS-END]
+  [JAHRES-TABELLE:${tableHeader}] dann [JAHR:JJJJ|${yearCols}] fuer jedes Jahr
+  [PINNACLE:Person|Nr|Zeitraum|Zahl|Beschreibung|Challenge]
+  [NAMEN-GRID-START] ... [NAMEN-CARD:Name|Rolle|SD-Zahl|SD-Label|P-Zahl|P-Label|E-Zahl|E-Label|Beschreibung] ... [NAMEN-GRID-END]
+  [ESSENZ:Text]
+
+SEKTIONEN (in dieser Reihenfolge, ALLE vollstaendig ausarbeiten):
+${sektionen}
+
+QUALITAET: Schreibe so viel und so tief wie moeglich. Jede Sektion soll sich anfuehlen wie ein persoenliches Gespraech. Die Person soll sich gesehen und verstanden fuehlen.`;
     }
 
     // -- LOADING CYCLE ----------------------------------------------

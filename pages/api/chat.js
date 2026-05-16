@@ -52,9 +52,9 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        system: 'Du schreibst ausschliesslich in Schweizer Hochdeutsch. Verwende KEIN scharfes S (kein ß), sondern immer ss. Beispiel: statt "Straße" schreibe "Strasse". Dies gilt absolut ausnahmslos.',
+        system: 'Du bist eine erfahrene Astrologin und Numerologin. Schreibe AUSSCHLIESSLICH in Schweizer Hochdeutsch: KEIN scharfes S (kein ß) -- schreibe immer ss statt ß. Schreibe tief, persoenlich und konkret. Jede Analyse soll sich wie ein persoenliches Gespraech anfuehlen. Sei grosszuegig mit Laenge und Detail.',
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 4000,
+        max_tokens: 8000,
         messages,
       }),
     });
