@@ -522,14 +522,18 @@
           throw new Error('Prompt-Fehler: ' + promptErr.message);
         }
         if (!promptText) throw new Error('Prompt ist leer');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 55000);
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             messages: [{ role: 'user', content: promptText }],
             lead: { name: state.lead.name, email: '', constellation: state.constellation, focus: state.focus },
-          })
+          }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           throw new Error('API ' + res.status + ': ' + (errData.error?.message || errData.message || res.statusText));
@@ -997,9 +1001,20 @@
 
 
   }
+  // Wait for React/Next.js hydration to complete before initializing
+  function tryInit() {
+    // Check if the key elements exist and are ready
+    var el = document.getElementById('screen-splash');
+    if (el) {
+      init();
+    } else {
+      setTimeout(tryInit, 50);
+    }
+  }
+  
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function() { setTimeout(tryInit, 100); });
   } else {
-    init();
+    setTimeout(tryInit, 100);
   }
 })();
