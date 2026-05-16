@@ -53,8 +53,8 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         system: 'Du schreibst ausschliesslich in Schweizer Hochdeutsch. Verwende KEIN scharfes S (kein ß), sondern immer ss. Beispiel: statt "Straße" schreibe "Strasse". Dies gilt absolut ausnahmslos.',
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 8192,
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 4000,
         messages,
       }),
     });
