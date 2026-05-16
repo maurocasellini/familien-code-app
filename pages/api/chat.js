@@ -50,7 +50,8 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-5',
+        system: 'Du schreibst ausschliesslich in Schweizer Hochdeutsch. Verwende KEIN scharfes S (kein ß), sondern immer ss. Beispiel: statt "Straße" schreibe "Strasse". Dies gilt absolut ausnahmslos.',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 8192,
         messages,
       }),
