@@ -374,6 +374,19 @@ export default function Home() {
 
           /* ── RESULT ───────────────────────────────────────────── */
           #screen-result { min-height: calc(100vh - 68px); }
+          #screen-ancestry .ancestor-block { border: 1.5px solid var(--rule, #e8ddc8); border-radius: 6px; padding: 0; margin-bottom: 10px; background: var(--white, #fff); overflow: hidden; }
+          #screen-ancestry .ancestor-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; cursor: pointer; gap: 12px; }
+          #screen-ancestry .ancestor-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: var(--ink, #1c1714); margin-bottom: 2px; }
+          #screen-ancestry .ancestor-sub { font-size: 12px; color: var(--silver, #9a8a80); font-style: italic; }
+          #screen-ancestry .ancestor-arrow { font-size: 18px; color: var(--gold-l, #c4962a); flex-shrink: 0; }
+          #screen-ancestry .ancestor-fields { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+          #screen-ancestry .ancestry-toggle-card { border: 1.5px solid var(--rule, #e8ddc8); border-radius: 6px; padding: 18px; margin-bottom: 14px; background: var(--white, #fff); cursor: pointer; transition: all 0.2s; }
+          #screen-ancestry .ancestry-check-circle { width: 26px; height: 26px; border-radius: 50%; background: var(--gold-p, #f0e4c0); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+          #screen-ancestry .ancestry-toggle-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--ink, #1c1714); }
+          #screen-ancestry .ancestry-toggle-sub { font-size: 12px; color: var(--silver, #9a8a80); margin-top: 2px; }
+          .btn-rose { width: 100%; padding: 15px 24px; background: var(--rose, #8b4060); color: white; border: 1.5px solid var(--rose, #8b4060); border-radius: 3px; font-family: 'Lato', sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; }
+          .btn-rose:hover:not(:disabled) { background: var(--rose-l, #c4687e); border-color: var(--rose-l, #c4687e); }
+          .btn-rose:disabled { opacity: 0.4; cursor: not-allowed; }
           .result-hero {
             background: linear-gradient(145deg, var(--paper-deep) 0%, var(--paper) 60%, var(--rose-pale) 100%);
             padding: 68px 56px; position: relative; overflow: hidden;
@@ -768,6 +781,81 @@ export default function Home() {
         </div>
       </div>
 
+
+      {/* SCREEN: AHNENLINIE */}
+      <div className="screen" id="screen-ancestry">
+        <div className="form-page">
+          <div className="form-page-header">
+            <button className="btn-back" id="btn-back-ancestry">← Zurück</button>
+            <div className="form-eyebrow">Optional</div>
+            <div className="form-h1">Die Ahnenlinie</div>
+            <div className="form-sub">Was aus deiner Familie mitschwingt — über Generationen. Alle Felder sind freiwillig.</div>
+          </div>
+
+          <div id="ancestry-toggle-card" className="ancestry-toggle-card">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div className="ancestry-check-circle" id="ancestry-check-circle"></div>
+              <div>
+                <div className="ancestry-toggle-title">Ahnenlinie einbeziehen</div>
+                <div className="ancestry-toggle-sub">Eltern, Grosseltern, Familienthemen</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="ancestry-fields" style={{ display: 'none' }}>
+            <div className="ornament" style={{ margin: '12px 0 8px' }}>— Eltern —</div>
+            {['mother', 'father', 'mgm', 'mgf', 'pgm', 'pgf'].map(key => (
+              <div key={key} id={"ancestor-block-" + key} className="ancestor-block">
+                <div className="ancestor-header" id={"ancestor-toggle-" + key}>
+                  <div>
+                    <div className="ancestor-title" id={"ancestor-title-" + key}>
+                      {key === 'mother' ? 'Mutter' : key === 'father' ? 'Vater' : key === 'mgm' ? 'Grossmutter mütterlicherseits' : key === 'mgf' ? 'Grossvater mütterlicherseits' : key === 'pgm' ? 'Grossmutter väterlicherseits' : 'Grossvater väterlicherseits'}
+                      <span className="optional-badge">optional</span>
+                    </div>
+                    <div className="ancestor-sub" id={"ancestor-sub-" + key}>Tippe hier um Angaben zu machen</div>
+                  </div>
+                  <div className="ancestor-arrow" id={"ancestor-arrow-" + key}>▾</div>
+                </div>
+                <div className="ancestor-fields" id={"ancestor-fields-" + key} style={{ display: 'none' }}>
+                  <div className="field-group">
+                    <label className="field-label">Taufname</label>
+                    <input className="field-input" id={"ancestor-" + key + "-firstname"} placeholder="Vorname" />
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label">Nachname / Geburtsname</label>
+                    <input className="field-input" id={"ancestor-" + key + "-lastname"} placeholder="Familienname" />
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label">Herkunftsland</label>
+                    <input className="field-input" id={"ancestor-" + key + "-country"} placeholder="z. B. Portugal, Schweiz" />
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label">Geburtsdatum (falls bekannt)</label>
+                    <div className="date-row">
+                      <div className="field-group"><input className="field-input" id={"ancestor-" + key + "-day"} type="number" placeholder="TT" style={{ textAlign: 'center' }} /><div className="date-hint">Tag</div></div>
+                      <div className="field-group"><input className="field-input" id={"ancestor-" + key + "-month"} type="number" placeholder="MM" style={{ textAlign: 'center' }} /><div className="date-hint">Monat</div></div>
+                      <div className="field-group"><input className="field-input" id={"ancestor-" + key + "-year"} type="number" placeholder="JJJJ" style={{ textAlign: 'center' }} /><div className="date-hint">Jahr</div></div>
+                    </div>
+                  </div>
+                </div>
+                {key === 'father' && <div className="ornament" style={{ margin: '14px 0 8px' }}>— Grosseltern —</div>}
+              </div>
+            ))}
+            <div className="ornament" style={{ margin: '14px 0 8px' }}>— Themen —</div>
+            <div className="field-group">
+              <label className="field-label">Wiederkehrende Familienthemen <span className="optional-badge">optional</span></label>
+              <textarea className="field-input" id="ancestry-themes" rows={3} placeholder="z. B. frühe Verluste, starke Frauen, Migration, spirituelle Berufe..." style={{ resize: 'vertical' }} />
+              <div className="field-note">Hilft, generationsübergreifende Muster zu erkennen.</div>
+            </div>
+          </div>
+
+          <div className="btn-row" style={{ marginTop: 24 }}>
+            <button className="btn-primary btn-next-generic" id="btn-ancestry-next">Weiter</button>
+            <button className="btn-ghost btn-next-generic" id="btn-ancestry-skip">Ohne Ahnenlinie weiter</button>
+          </div>
+        </div>
+      </div>
+
       {/* SCREEN 6: FOKUS */}
       <div className="screen" id="screen-focus">
         <div className="form-page">
@@ -821,7 +909,8 @@ export default function Home() {
         </div>
         <div className="result-content" id="result-body"></div>
         <div className="result-actions">
-          <button className="btn-primary" id="btn-print">↓ Als PDF speichern</button>
+          <button className="btn-rose" id="btn-download-docx">↓ Als Word-Dokument (editierbar)</button>
+          <button className="btn-primary" id="btn-print">Drucken / Als PDF speichern</button>
           <button className="btn-ghost" id="btn-reset-result">Neue Analyse starten</button>
         </div>
       </div>

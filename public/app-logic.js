@@ -6,7 +6,13 @@
       constellation: '',
       focus: '',
       childCount: 1,
-      lead: { name: '', email: '' },  // Lead-Gate
+      lead: { name: '', email: '' },
+      ancestry: {
+        include: false,
+        mother: {}, father: {},
+        mgm: {}, mgf: {}, pgm: {}, pgf: {},
+        themes: ''
+      },  // Lead-Gate
     };
 
     // -- FLOW -------------------------------------------------------
@@ -16,7 +22,7 @@
       let f = ['splash', 'constellation', 'person1'];
       if (hasPair) f.push('person2', 'couple');
       if (hasKids) f.push('children');
-      f.push('focus', 'loading', 'result');
+      f.push('ancestry', 'focus', 'loading', 'result');
       return f;
     }
 
@@ -33,6 +39,7 @@
       cur = id;
       window.scrollTo(0, 0);
       updateNav();
+      if (id === 'ancestry') initAncestryToggles();
     }
 
     function updateNav() {
@@ -64,6 +71,108 @@
       const f = getFlow(), i = f.indexOf(cur);
       if (i > 0) showScreen(f[i - 1]);
     }
+
+    // -- ANCESTRY HELPERS ------------------------------------------
+    function getAncestor(key) {
+      return {
+        firstName: (document.getElementById('ancestor-' + key + '-firstname') || {}).value || '',
+        lastName: (document.getElementById('ancestor-' + key + '-lastname') || {}).value || '',
+        birthCountry: (document.getElementById('ancestor-' + key + '-country') || {}).value || '',
+        day: (document.getElementById('ancestor-' + key + '-day') || {}).value || '',
+        month: (document.getElementById('ancestor-' + key + '-month') || {}).value || '',
+        year: (document.getElementById('ancestor-' + key + '-year') || {}).value || '',
+      };
+    }
+
+    function getAncestry() {
+      var themes = (document.getElementById('ancestry-themes') || {}).value || '';
+      return {
+        include: state.ancestry.include,
+        mother: getAncestor('mother'),
+        father: getAncestor('father'),
+        maternalGrandmother: getAncestor('mgm'),
+        maternalGrandfather: getAncestor('mgf'),
+        paternalGrandmother: getAncestor('pgm'),
+        paternalGrandfather: getAncestor('pgf'),
+        themes: themes,
+      };
+    }
+
+    function toggleAncestry() {
+      state.ancestry.include = !state.ancestry.include;
+      var card = document.getElementById('ancestry-toggle-card');
+      var fields = document.getElementById('ancestry-fields');
+      var circle = document.getElementById('ancestry-check-circle');
+      var skipBtn = document.getElementById('btn-ancestry-skip');
+      if (card) card.style.background = state.ancestry.include ? 'var(--gold-pp, #fdf9f0)' : '';
+      if (card) card.style.borderColor = state.ancestry.include ? 'var(--gold-l, #c4962a)' : '';
+      if (fields) fields.style.display = state.ancestry.include ? '' : 'none';
+      if (circle) circle.innerHTML = state.ancestry.include ? '<span style="color:white;font-size:14px">✓</span>' : '';
+      if (circle) circle.style.background = state.ancestry.include ? 'var(--gold, #9a7020)' : 'var(--gold-p, #f0e4c0)';
+      if (skipBtn) skipBtn.style.display = state.ancestry.include ? 'none' : '';
+    }
+
+    function initAncestryToggles() {
+      ['mother', 'father', 'mgm', 'mgf', 'pgm', 'pgf'].forEach(function(key) {
+        var toggle = document.getElementById('ancestor-toggle-' + key);
+        if (!toggle) return;
+        toggle.onclick = function() {
+          var fields = document.getElementById('ancestor-fields-' + key);
+          var arrow = document.getElementById('ancestor-arrow-' + key);
+          var open = fields && fields.style.display !== 'none';
+          if (fields) fields.style.display = open ? 'none' : '';
+          if (arrow) arrow.textContent = open ? '▾' : '▴';
+          // Update sub label
+          var fn = (document.getElementById('ancestor-' + key + '-firstname') || {}).value || '';
+          var ln = (document.getElementById('ancestor-' + key + '-lastname') || {}).value || '';
+          var sub = document.getElementById('ancestor-sub-' + key);
+          if (sub) sub.textContent = (fn + ' ' + ln).trim() || 'Tippe hier um Angaben zu machen';
+        };
+      });
+    }
+
+    // -- DOCX DOWNLOAD ---------------------------------------------
+    async function downloadDocx() {
+      var btn = document.getElementById('btn-download-docx');
+      if (btn) { btn.disabled = true; btn.textContent = 'Wird erstellt...'; }
+      try {
+        var p1 = getPerson('p1');
+        var hasPair = state.constellation === 'pair' || state.constellation === 'family';
+        var p2 = hasPair ? getPerson('p2') : null;
+        var hasKids = state.constellation === 'family' || state.constellation === 'solo_children';
+        var kids = hasKids ? getChildren() : [];
+        var ancestry = getAncestry();
+        var resultText = document.getElementById('result-body') ? document.getElementById('result-body').dataset.rawText || '' : '';
+
+        var res = await fetch('/api/generate-docx', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            result: resultText,
+            person1: p1,
+            person2: p2,
+            constellation: state.constellation,
+            children: kids,
+            ancestry: ancestry,
+          })
+        });
+        if (!res.ok) throw new Error('DOCX Fehler');
+        var blob = await res.blob();
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'familien-code-' + (p1.firstName || 'analyse').toLowerCase().replace(/\s+/g, '-') + '.docx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch(err) {
+        alert('Fehler beim Erstellen: ' + err.message);
+      }
+      if (btn) { btn.disabled = false; btn.textContent = '↓ Als Word-Dokument (editierbar)'; }
+    }
+
+
 
     // -- CARDS ------------------------------------------------------
     function selectCard(el, type) {
@@ -327,7 +436,27 @@
       sektionen += '8. Jahresenergien 2025-2030 -- mit [JAHRES-TABELLE:' + [p1.firstName, hasPair && p2 && p2.firstName ? p2.firstName : null].filter(Boolean).join('|') + '] und Zeilen [JAHR:2025|Zahl·Keyword' + (hasPair ? '|Zahl·Keyword' : '') + ']\n';
       sektionen += '9. Pinnacles & Challenges -- mit [PINNACLE:Person|Nr|Zeitraum|Zahl|Beschreibung|Challenge]\n';
       sektionen += '10. Namen-Numerologie -- mit [NAMEN-GRID-START/END]\n';
-      sektionen += hasNameChange ? '11. Namenswechsel\n12. Die Essenz -- mit [ESSENZ:Satz]' : '11. Die Essenz -- mit [ESSENZ:Satz]';
+      var esNum = 11;
+      if (ancestry.include) { sektionen += esNum + '. Die Ahnenlinie -- Lebenszahlen der Vorfahren, Muster, Systemisches\n'; esNum++; }
+      if (hasNameChange) { sektionen += esNum + '. Namenswechsel & seine Energie\n'; esNum++; }
+      sektionen += esNum + '. Die Essenz -- mit [ESSENZ:Ein einziger Satz der alles zusammenfasst]';
+
+      var ancestry = getAncestry();
+      var ancestryBlock = '';
+      if (ancestry.include) {
+        ancestryBlock = '\nAHNENLINIE:';
+        var aKeys = ['mother', 'father', 'maternalGrandmother', 'maternalGrandfather', 'paternalGrandmother', 'paternalGrandfather'];
+        var aLabels = ['Mutter', 'Vater', 'Grossmutter mütterlicherseits', 'Grossvater mütterlicherseits', 'Grossmutter väterlicherseits', 'Grossvater väterlicherseits'];
+        aKeys.forEach(function(k, i) {
+          var a = ancestry[k] || getAncestor(k === 'maternalGrandmother' ? 'mgm' : k === 'maternalGrandfather' ? 'mgf' : k === 'paternalGrandmother' ? 'pgm' : k === 'paternalGrandfather' ? 'pgf' : k);
+          if (a && a.firstName) {
+            ancestryBlock += '\n- ' + aLabels[i] + ': ' + a.firstName + (a.lastName ? ' ' + a.lastName : '');
+            if (a.birthCountry) ancestryBlock += ', Herkunft: ' + a.birthCountry;
+            if (a.day && a.month && a.year) ancestryBlock += ', *' + a.day + '.' + a.month + '.' + a.year;
+          }
+        });
+        if (ancestry.themes) ancestryBlock += '\nWiederkehrende Familienthemen: ' + ancestry.themes;
+      }
 
       return 'Du bist eine erfahrene Astrologin. Schweizer Hochdeutsch. Kein scharfes S (kein ß) -- immer ss. Tiefe persoenliche Analyse, direkt mit du.\n\n'
         + 'KONSTELLATION: ' + state.constellation + '\nFOKUS: ' + state.focus + '\n'
@@ -723,6 +852,9 @@
     }
 
     function renderResult(text) {
+      // Store raw text for DOCX export
+      var resultBody = document.getElementById('result-body');
+      if (resultBody) resultBody.dataset.rawText = text;
       const secs = text.split('~~~').map(s => s.trim()).filter(Boolean);
       const body = document.getElementById('result-body');
       if (!body) return;
@@ -829,6 +961,10 @@
         if (btn.classList.contains('btn-back')) goBack();
         if (btn.classList.contains('btn-next-generic')) goNext();
         if (id === 'hero-cta-btn') goNext();
+        if (id === 'btn-ancestry-next' || id === 'btn-ancestry-skip') goNext();
+        if (id === 'btn-back-ancestry') goBack();
+        if (id === 'ancestry-toggle-card') toggleAncestry();
+        if (id === 'btn-download-docx') downloadDocx();
         if (id === 'btn-print') window.print();
         if (id === 'btn-reset-result') resetAll();
       }
