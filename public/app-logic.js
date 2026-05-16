@@ -931,13 +931,8 @@
       showScreen('splash');
     }
 
-    // -- INIT FORMS -------------------------------------------------
-    const p1form = document.getElementById('person1-form');
-    if (p1form) p1form.innerHTML = personFormHTML('p1');
-    const p2form = document.getElementById('person2-form');
-    if (p2form) p2form.innerHTML = personFormHTML('p2');
-    const childContainer = document.getElementById('children-container');
-    if (childContainer) childContainer.innerHTML = childBlockHTML(0);
+    // -- INIT ---------------------------------------------------
+    // Forms are now in static JSX - no innerHTML injection needed
     updateNav();
 
     // Lead gate input listeners

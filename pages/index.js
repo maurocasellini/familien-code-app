@@ -657,7 +657,36 @@ export default function Home() {
           </div>
           <div className="person-section">
             <div className="person-section-title">Persönliche Angaben</div>
-            <div id="person1-form"></div>
+            <div id="person1-form">
+                  <div className="field-row">
+                    <div className="field-group">
+                      <label className="field-label">Vorname/n (Taufname)</label>
+                      <input className="field-input" id="p1-firstname" placeholder="Taufname/n" />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Nachname</label>
+                      <input className="field-input" id="p1-lastname" placeholder="Nachname" />
+                    </div>
+                  </div>
+                  <div className="field-row-3">
+                    <div className="field-group">
+                      <label className="field-label">Geburtsdatum (TT.MM.JJJJ)</label>
+                      <input className="field-input" id="p1-birthdate" placeholder="15.03.1988" />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Geburtszeit (HH:MM)</label>
+                      <input className="field-input" id="p1-birthtime" placeholder="14:30" />
+                      <div className="toggle-row" data-toggle-input="p1-birthtime" data-toggle-id="p1-notime">
+                        <div className="toggle-box" id="p1-notime"></div>
+                        <span className="toggle-label">Unbekannt</span>
+                      </div>
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Geburtsort</label>
+                      <input className="field-input" id="p1-birthplace" placeholder="Stadt, Land" />
+                    </div>
+                  </div>
+                </div>
           </div>
           <div className="namechange-section">
             <div className="namechange-toggle" onClick={(e) => {
@@ -697,7 +726,36 @@ export default function Home() {
           </div>
           <div className="person-section">
             <div className="person-section-title">Angaben Partner:in</div>
-            <div id="person2-form"></div>
+            <div id="person2-form">
+                  <div className="field-row">
+                    <div className="field-group">
+                      <label className="field-label">Vorname/n (Taufname)</label>
+                      <input className="field-input" id="p2-firstname" placeholder="Taufname/n" />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Nachname</label>
+                      <input className="field-input" id="p2-lastname" placeholder="Nachname" />
+                    </div>
+                  </div>
+                  <div className="field-row-3">
+                    <div className="field-group">
+                      <label className="field-label">Geburtsdatum (TT.MM.JJJJ)</label>
+                      <input className="field-input" id="p2-birthdate" placeholder="15.03.1988" />
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Geburtszeit (HH:MM)</label>
+                      <input className="field-input" id="p2-birthtime" placeholder="14:30" />
+                      <div className="toggle-row" data-toggle-input="p2-birthtime" data-toggle-id="p2-notime">
+                        <div className="toggle-box" id="p2-notime"></div>
+                        <span className="toggle-label">Unbekannt</span>
+                      </div>
+                    </div>
+                    <div className="field-group">
+                      <label className="field-label">Geburtsort</label>
+                      <input className="field-input" id="p2-birthplace" placeholder="Stadt, Land" />
+                    </div>
+                  </div>
+                </div>
           </div>
           <div className="namechange-section">
             <div className="namechange-toggle" onClick={(e) => {
@@ -771,7 +829,41 @@ export default function Home() {
             <h2 className="form-h2">Die Kinder</h2>
             <p className="form-sub">Bis zu 5 Kinder können erfasst werden. Die Geburtszeit ist optional, aber wertvoll für die Analyse.</p>
           </div>
-          <div id="children-container"></div>
+          <div id="children-container">
+                  <div className="child-block" id="child-block-0">
+                    <div className="child-block-header">
+                      <div className="child-block-title">Kind 1</div>
+                    </div>
+                    <div className="field-row">
+                      <div className="field-group">
+                        <label className="field-label">Vorname/n (Taufname)</label>
+                        <input className="field-input" id="child0-firstname" placeholder="Taufname/n" />
+                      </div>
+                      <div className="field-group">
+                        <label className="field-label">Nachname</label>
+                        <input className="field-input" id="child0-lastname" placeholder="Nachname" />
+                      </div>
+                    </div>
+                    <div className="field-row-3">
+                      <div className="field-group">
+                        <label className="field-label">Geburtsdatum (TT.MM.JJJJ)</label>
+                        <input className="field-input" id="child0-birthdate" placeholder="15.03.2015" />
+                      </div>
+                      <div className="field-group">
+                        <label className="field-label">Geburtszeit (HH:MM)</label>
+                        <input className="field-input" id="child0-birthtime" placeholder="14:30" />
+                        <div className="toggle-row" data-toggle-input="child0-birthtime" data-toggle-id="child0-notime">
+                          <div className="toggle-box" id="child0-notime"></div>
+                          <span className="toggle-label">Unbekannt</span>
+                        </div>
+                      </div>
+                      <div className="field-group">
+                        <label className="field-label">Geburtsort</label>
+                        <input className="field-input" id="child0-birthplace" placeholder="Stadt, Land" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
           <button className="btn-add" id="btn-add-child">+ Weiteres Kind hinzufügen</button>
           <div className="form-footer">
             <button className="btn-back">← Zurück</button>
